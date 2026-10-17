@@ -2,11 +2,337 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Il mio nuovo sito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Warfit - Allenamenti</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 12px; transition: transform 0.1s; }
+        .card:active { transform: scale(0.98); }
+        .btn-primary { background-color: #10b981; color: white; border-radius: 12px; font-weight: bold; padding: 14px; text-align: center; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .badge-green { background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; }
+        .superserie-box { background-color: #f1f5f9; border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+        input[type="text"], textarea { outline: none; transition: border-color 0.2s; }
+        input[type="text"]:focus, textarea:focus { border-color: #10b981; }
+        .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    </style>
 </head>
 <body>
-    <h1>Benvenuto sul mio nuovo sito!</h1>
-    <p>Questa è la mia prima pagina HTML pubblicata con GitHub.</p>
+    <div id="app" class="max-w-md mx-auto min-h-screen pb-24 relative"></div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmwsYApFyH9plxsaYswKgG_wYusNLbF0DKDp0iozBqMQXmGmPzurMe1AdwJed2jawM/exec";
+        
+        const database = {
+            push: [
+                { tipo: 'singolo', nome: 'Croci ai cavi', serie: 1, rep: '10+10', rec: '1 min' },
+                { tipo: 'singolo', nome: 'Panca inclinata multipower', serie: 3, rep: '6/8, 6/8, 15+', rec: '2 min' },
+                { tipo: 'singolo', nome: 'Croci ai cavi', serie: 1, rep: 'pulse', rec: '90 sec' },
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Dips parallele', serie: 3, rep: 'max', rec: '1 min' },
+                    { nome: 'Alzate laterali manubri', serie: 3, rep: '10+10', rec: '30 sec' }
+                ]},
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Pulley con triangolo', serie: 3, rep: '8/12', rec: '1 min' },
+                    { nome: 'Curl al cavo basso', serie: 3, rep: '8/12', rec: '30 sec' }
+                ]},
+                { tipo: 'singolo', nome: 'Leg extension', serie: 3, rep: '10+10', rec: '90 sec' },
+                { tipo: 'singolo', nome: 'Leg press 45°', serie: 1, rep: 'Ramping 8', rec: '90 sec' },
+                { tipo: 'singolo', nome: 'Crunch ai cavi', serie: 4, rep: '8/15', rec: '1 min' }
+            ],
+            pull: [
+                { tipo: 'singolo', nome: 'Lat machine presa neutra', serie: 1, rep: 'Ramping 6', rec: '90 sec' },
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Rematore manubri panca gomiti larghi', serie: 2, rep: '8/10', rec: '30 sec' },
+                    { nome: 'Pull down cavo alto corda', serie: 2, rep: '15/20', rec: '1 min' }
+                ]},
+                { tipo: 'singolo', nome: 'Curl cavo basso singolo', serie: 2, rep: '6/8, 20', rec: '90 sec' },
+                { tipo: 'singolo', nome: 'Spider curl panca inclinata', serie: 1, rep: 'pulse', rec: '1 min' },
+                { tipo: 'singolo', nome: 'Aperture posteriori ai cavi alti sopra la testa', serie: 3, rep: '12/15', rec: '1 min' },
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Chest press', serie: 2, rep: '10+10', rec: '30 sec' },
+                    { nome: 'French press cavo alto', serie: 2, rep: '12/15', rec: '90 sec' }
+                ]},
+                { tipo: 'singolo', nome: 'Leg curl sdraiato', serie: 3, rep: '10+10', rec: '90 sec' },
+                { tipo: 'singolo', nome: 'Plank', serie: 3, rep: 'max', rec: '40 sec' }
+            ],
+            legs: [
+                { tipo: 'singolo', nome: 'Leg extension', serie: 1, rep: 'pulse', rec: '1 min' },
+                { tipo: 'singolo', nome: 'Squat al multipower', serie: 1, rep: 'ramping 6', rec: '2 min' },
+                { tipo: 'singolo', nome: 'Squat al multipower', serie: 1, rep: 'cluster 20', rec: '0 sec' },
+                { tipo: 'singolo', nome: 'Leg press monopodalica', serie: 1, rep: '8/12', rec: '90 sec' },
+                { tipo: 'singolo', nome: 'Stacco rumeno bilanciere', serie: 1, rep: 'ramping 6', rec: '2 min' },
+                { tipo: 'singolo', nome: 'Alzate laterali cavo', serie: 1, rep: 'pulse', rec: '1 min' },
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Rematore bilanciere', serie: 2, rep: '12/15', rec: '0 sec' },
+                    { nome: 'Chest press', serie: 2, rep: '12/15', rec: '90 sec' }
+                ]},
+                { tipo: 'superserie', esercizi: [
+                    { nome: 'Push down corda', serie: 2, rep: '12/15', rec: '0 sec' },
+                    { nome: 'Hammer curl in piedi', serie: 2, rep: '12/15', rec: '90 sec' }
+                ]}
+            ]
+        };
+
+        let currentView = 'home';
+        let activeWorkout = null;
+        let activeExIdx = null;
+        let activeSubIdx = null;
+        let logs = JSON.parse(localStorage.getItem('warfit_logs')) || [];
+
+        function render() {
+            const app = document.getElementById('app');
+            app.innerHTML = '';
+            
+            // HEADER
+            const header = document.createElement('div');
+            header.className = 'bg-emerald-600 text-white p-5 rounded-b-3xl shadow-lg sticky top-0 z-10 flex justify-between items-center mb-6';
+            if(currentView === 'home') {
+                header.innerHTML = '<div class="flex items-center"><div class="bg-white text-emerald-600 rounded-full w-8 h-8 flex items-center justify-center font-black italic mr-3">W</div><h1 class="text-xl font-bold">Warfit</h1></div><i class="fa-solid fa-gear text-xl"></i>';
+            } else if(currentView === 'workout') {
+                header.innerHTML = `<button onclick="navigate('home')" class="text-white text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Focus ${activeWorkout}</h1><div class="w-8"></div>`;
+            } else if(currentView === 'exercise') {
+                header.innerHTML = `<button onclick="navigate('workout')" class="text-white text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Dettaglio</h1><div class="w-8"></div>`;
+            }
+            app.appendChild(header);
+
+            // CONTENT
+            const content = document.createElement('div');
+            content.className = 'px-4';
+
+            if (currentView === 'home') {
+                content.innerHTML = `
+                    <div class="flex gap-2 mb-6">
+                        <div class="flex-1 text-center py-2 bg-white rounded-full border-2 border-emerald-500 text-emerald-600 font-bold">Da fare</div>
+                        <div class="flex-1 text-center py-2 bg-emerald-500 rounded-full text-white font-bold">Passati</div>
+                    </div>
+                    
+                    <div onclick="openWorkout('push')" class="card flex justify-between items-center mb-4">
+                        <div>
+                            <span class="badge-green mb-2 inline-block uppercase">Giorno 1</span>
+                            <h3 class="text-lg font-extrabold text-gray-800">Full body focus Push</h3>
+                            <p class="text-gray-400 text-sm font-medium mt-1"><i class="fa-solid fa-dumbbell text-gray-300 mr-1"></i> ${database.push.length} blocchi</p>
+                        </div>
+                        <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-chevron-right"></i></div>
+                    </div>
+                    
+                    <div onclick="openWorkout('pull')" class="card flex justify-between items-center mb-4">
+                        <div>
+                            <span class="badge-green mb-2 inline-block uppercase">Giorno 2</span>
+                            <h3 class="text-lg font-extrabold text-gray-800">Full body focus Pull</h3>
+                            <p class="text-gray-400 text-sm font-medium mt-1"><i class="fa-solid fa-dumbbell text-gray-300 mr-1"></i> ${database.pull.length} blocchi</p>
+                        </div>
+                        <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-chevron-right"></i></div>
+                    </div>
+                    
+                    <div onclick="openWorkout('legs')" class="card flex justify-between items-center mb-4">
+                        <div>
+                            <span class="badge-green mb-2 inline-block uppercase">Giorno 3</span>
+                            <h3 class="text-lg font-extrabold text-gray-800">Full body focus Gambe</h3>
+                            <p class="text-gray-400 text-sm font-medium mt-1"><i class="fa-solid fa-dumbbell text-gray-300 mr-1"></i> ${database.legs.length} blocchi</p>
+                        </div>
+                        <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-chevron-right"></i></div>
+                    </div>
+                `;
+            } 
+            else if (currentView === 'workout') {
+                const wData = database[activeWorkout];
+                let html = '<h2 class="text-2xl font-black mb-4 text-gray-800">Esercizi</h2>';
+                
+                wData.forEach((item, index) => {
+                    if(item.tipo === 'singolo') {
+                        html += `
+                        <div onclick="openExercise(${index}, null)" class="card">
+                            <h3 class="font-extrabold text-lg text-gray-800">${item.nome}</h3>
+                            <p class="text-gray-500 text-sm mt-2 font-medium">
+                                <span class="font-bold text-gray-700">${item.serie}</span> Serie &middot; <span class="font-bold text-gray-700">${item.rep}</span> &middot; <i class="fa-regular fa-hourglass-half ml-1"></i> ${item.rec}
+                            </p>
+                        </div>`;
+                    } else {
+                        html += `<div class="superserie-box">
+                            <h3 class="font-extrabold text-gray-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-arrows-rotate mr-2 text-gray-500"></i> Superserie</h3>`;
+                        item.esercizi.forEach((subItem, subIdx) => {
+                            html += `
+                            <div onclick="openExercise(${index}, ${subIdx})" class="card border border-white">
+                                <h4 class="font-extrabold text-gray-800">${subItem.nome}</h4>
+                                <p class="text-gray-500 text-sm mt-2 font-medium">
+                                    <span class="font-bold text-gray-700">${subItem.serie}</span> Serie &middot; <span class="font-bold text-gray-700">${subItem.rep}</span> &middot; <i class="fa-regular fa-hourglass-half ml-1"></i> ${subItem.rec}
+                                </p>
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
+                });
+                
+                html += `
+                    <div class="mt-6 mb-10">
+                        <button onclick="syncData()" class="btn-primary w-full"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Termina e Salva</button>
+                        <p class="text-center text-xs text-gray-400 mt-3 font-medium">I dati verranno inviati al tuo Foglio Google</p>
+                    </div>
+                `;
+                content.innerHTML = html;
+            }
+            else if (currentView === 'exercise') {
+                let ex = (activeSubIdx !== null) 
+                    ? database[activeWorkout][activeExIdx].esercizi[activeSubIdx] 
+                    : database[activeWorkout][activeExIdx];
+
+                let numSeries = ex.serie || 1;
+                let seriesHtml = '';
+                
+                for(let i=1; i<=numSeries; i++) {
+                    seriesHtml += `
+                    <div class="input-row">
+                        <div class="w-8 h-8 rounded-full border-2 border-emerald-500 flex items-center justify-center text-emerald-600 font-bold text-sm bg-emerald-50">${i}</div>
+                        <input type="text" id="peso_${i}" placeholder="Peso (es. 10+10)" class="border border-gray-200 rounded-xl p-3 flex-1 bg-gray-50 focus:bg-white text-gray-700 font-medium" />
+                        <input type="text" id="rep_${i}" placeholder="Ripetizioni" class="border border-gray-200 rounded-xl p-3 w-28 bg-gray-50 focus:bg-white text-gray-700 font-medium" />
+                    </div>
+                    `;
+                }
+
+                content.innerHTML = `
+                    <h2 class="text-2xl font-black mb-6 text-gray-800 leading-tight">${ex.nome}</h2>
+                    
+                    <div class="flex justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="text-center flex-1">
+                            <div class="text-emerald-400 mb-2 text-xl"><i class="fa-solid fa-rotate-right"></i></div>
+                            <div class="font-extrabold text-xl text-gray-800">${ex.serie}</div>
+                            <div class="text-xs text-gray-400 font-medium mt-1">Serie</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-100"></div>
+                        <div class="text-center flex-1">
+                            <div class="text-emerald-400 mb-2 text-xl"><i class="fa-solid fa-dumbbell"></i></div>
+                            <div class="font-extrabold text-xl text-gray-800">${ex.rep}</div>
+                            <div class="text-xs text-gray-400 font-medium mt-1">Ripetizioni</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-100"></div>
+                        <div class="text-center flex-1">
+                            <div class="text-emerald-400 mb-2 text-xl"><i class="fa-regular fa-hourglass-half"></i></div>
+                            <div class="font-extrabold text-xl text-gray-800">${ex.rec}</div>
+                            <div class="text-xs text-gray-400 font-medium mt-1">Recupero</div>
+                        </div>
+                    </div>
+
+                    <div class="card p-5 mb-6 shadow-sm border border-gray-50">
+                        <h3 class="font-extrabold text-gray-800 text-lg mb-4">Serie</h3>
+                        ${seriesHtml}
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-extrabold text-gray-800 mb-2">Note</label>
+                            <textarea id="note_ex" rows="2" class="border border-gray-200 rounded-xl p-3 w-full bg-gray-50 focus:bg-white text-gray-700 font-medium" placeholder="Inserisci nota (es. dolori, feedback)..."></textarea>
+                        </div>
+                    </div>
+
+                    <button onclick="saveExerciseData()" class="btn-primary w-full"><i class="fa-solid fa-check mr-2"></i> Salva Carico</button>
+                `;
+            }
+
+            app.appendChild(content);
+        }
+
+        window.navigate = function(view) {
+            currentView = view;
+            render();
+        }
+
+        window.openWorkout = function(id) {
+            activeWorkout = id;
+            currentView = 'workout';
+            render();
+        }
+
+        window.openExercise = function(idx, subIdx) {
+            activeExIdx = idx;
+            activeSubIdx = subIdx;
+            currentView = 'exercise';
+            render();
+        }
+
+        window.saveExerciseData = function() {
+            let ex = (activeSubIdx !== null) 
+                ? database[activeWorkout][activeExIdx].esercizi[activeSubIdx] 
+                : database[activeWorkout][activeExIdx];
+            
+            let numSeries = ex.serie || 1;
+            let dateStr = new Date().toISOString().split('T')[0];
+            let note = document.getElementById('note_ex').value;
+            let savedAny = false;
+            
+            for(let i=1; i<=numSeries; i++) {
+                let p = document.getElementById('peso_'+i).value.trim();
+                let r = document.getElementById('rep_'+i).value.trim();
+                
+                if(p || r) {
+                    logs.push({
+                        data: dateStr,
+                        allenamento: activeWorkout.toUpperCase(),
+                        esercizio: ex.nome,
+                        serie: i,
+                        peso: p,
+                        ripetizioni: r,
+                        note: note
+                    });
+                    savedAny = true;
+                }
+            }
+            
+            if(savedAny) {
+                localStorage.setItem('warfit_logs', JSON.stringify(logs));
+                // Vibrate feedback if supported
+                if(navigator.vibrate) navigator.vibrate(50); 
+                navigate('workout');
+            } else {
+                alert("Inserisci almeno un peso o una ripetizione per salvare.");
+            }
+        }
+
+        window.syncData = function() {
+            if(logs.length === 0) {
+                alert("Nessun nuovo allenamento da salvare.");
+                return;
+            }
+            
+            // Create UI loading overlay
+            const app = document.getElementById('app');
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center flex-col';
+            overlay.innerHTML = '<div class="w-12 h-12 border-4 border-white border-t-emerald-500 rounded-full animate-spin mb-4"></div><p class="text-white font-bold text-lg">Sincronizzazione in corso...</p>';
+            document.body.appendChild(overlay);
+            
+            // Send requests iteratively to avoid overwhelming Google Apps Script
+            let index = 0;
+            
+            function sendNext() {
+                if(index >= logs.length) {
+                    document.body.removeChild(overlay);
+                    logs = [];
+                    localStorage.setItem('warfit_logs', '[]');
+                    alert("Salvataggio completato su Google Sheets!");
+                    navigate('home');
+                    return;
+                }
+                
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logs[index])
+                }).then(() => {
+                    index++;
+                    sendNext();
+                }).catch(err => {
+                    document.body.removeChild(overlay);
+                    alert("Si è verificato un errore di connessione.");
+                    console.error(err);
+                });
+            }
+            
+            sendNext();
+        }
+
+        // Init App
+        render();
+    </script>
 </body>
 </html>
