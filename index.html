@@ -300,40 +300,31 @@
             overlay.innerHTML = '<div class="w-12 h-12 border-4 border-white border-t-emerald-500 rounded-full animate-spin mb-4"></div><p class="text-white font-bold text-lg">Sincronizzazione in corso...</p>';
             document.body.appendChild(overlay);
             
-            let index = 0;
-            
-            function sendNext() {
-                if(index >= logs.length) {
-                    document.body.removeChild(overlay);
+            // INVIO A PACCO UNICO (BATCH REQUEST)
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify(logs) // Invia l'intero array 'logs' in una volta sola
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                document.body.removeChild(overlay);
+                if (data.status === 'success') {
                     logs = [];
                     localStorage.setItem('warfit_logs', '[]');
                     alert("Salvataggio completato su Google Sheets!");
                     navigate('home');
-                    return;
+                } else {
+                     alert("Errore restituito dal server: " + data.message);
                 }
-                
-                // UTILIZZO DI text/plain PER BYPASSARE IL BLOCCO CORS
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8',
-                    },
-                    body: JSON.stringify(logs[index])
-                })
-                .then(response => response.json()) // Google risponde con JSON
-                .then(data => {
-                    console.log("Risposta server:", data);
-                    index++;
-                    sendNext();
-                })
-                .catch(err => {
-                    document.body.removeChild(overlay);
-                    alert("Errore di connessione. Riprova.");
-                    console.error("Errore fetch:", err);
-                });
-            }
-            
-            sendNext();
+            })
+            .catch(err => {
+                document.body.removeChild(overlay);
+                alert("Errore di connessione. Riprova.");
+                console.error("Errore fetch:", err);
+            });
         }
 
         // Init App
