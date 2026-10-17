@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Warfit - Allenamenti</title>
+    <title>Allenamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -87,13 +87,13 @@
             
             // HEADER
             const header = document.createElement('div');
-            header.className = 'bg-emerald-600 text-white p-5 rounded-b-3xl shadow-lg sticky top-0 z-10 flex justify-between items-center mb-6';
+            header.className = 'bg-emerald-600 text-white p-5 rounded-b-3xl shadow-lg sticky top-0 z-10 flex justify-center items-center mb-6 relative';
             if(currentView === 'home') {
-                header.innerHTML = '<div class="flex items-center"><div class="bg-white text-emerald-600 rounded-full w-8 h-8 flex items-center justify-center font-black italic mr-3">W</div><h1 class="text-xl font-bold">Warfit</h1></div><i class="fa-solid fa-gear text-xl"></i>';
+                header.innerHTML = '<h1 class="text-xl font-bold">Allenamento</h1>';
             } else if(currentView === 'workout') {
-                header.innerHTML = `<button onclick="navigate('home')" class="text-white text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Focus ${activeWorkout}</h1><div class="w-8"></div>`;
+                header.innerHTML = `<button onclick="navigate('home')" class="text-white text-xl p-1 absolute left-5"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Focus ${activeWorkout}</h1>`;
             } else if(currentView === 'exercise') {
-                header.innerHTML = `<button onclick="navigate('workout')" class="text-white text-xl p-1"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Dettaglio</h1><div class="w-8"></div>`;
+                header.innerHTML = `<button onclick="navigate('workout')" class="text-white text-xl p-1 absolute left-5"><i class="fa-solid fa-chevron-left"></i></button><h1 class="text-xl font-bold truncate px-2">Dettaglio</h1>`;
             }
             app.appendChild(header);
 
@@ -300,7 +300,6 @@
             overlay.innerHTML = '<div class="w-12 h-12 border-4 border-white border-t-emerald-500 rounded-full animate-spin mb-4"></div><p class="text-white font-bold text-lg">Sincronizzazione in corso...</p>';
             document.body.appendChild(overlay);
             
-            // Send requests iteratively to avoid overwhelming Google Apps Script
             let index = 0;
             
             function sendNext() {
@@ -313,18 +312,21 @@
                     return;
                 }
                 
+                // INVIO CORRETTO SENZA BLOCCO CORS
                 fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logs[index])
-                }).then(() => {
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log("Risposta server:", data);
                     index++;
                     sendNext();
-                }).catch(err => {
+                })
+                .catch(err => {
                     document.body.removeChild(overlay);
-                    alert("Si è verificato un errore di connessione.");
-                    console.error(err);
+                    alert("Errore di connessione. I dati NON sono andati persi, riprova tra poco.");
+                    console.error("Errore fetch:", err);
                 });
             }
             
