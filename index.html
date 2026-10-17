@@ -22,6 +22,7 @@
     <div id="app" class="max-w-md mx-auto min-h-screen pb-24 relative"></div>
 
     <script>
+        // NUOVO URL AGGIORNATO
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmwsYApFyH9plxsaYswKgG_wYusNLbF0DKDp0iozBqMQXmGmPzurMe1AdwJed2jawM/exec";
         
         const database = {
@@ -293,7 +294,6 @@
                 return;
             }
             
-            // Create UI loading overlay
             const app = document.getElementById('app');
             const overlay = document.createElement('div');
             overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center flex-col';
@@ -312,12 +312,15 @@
                     return;
                 }
                 
-                // INVIO CORRETTO SENZA BLOCCO CORS
+                // UTILIZZO DI text/plain PER BYPASSARE IL BLOCCO CORS
                 fetch(SCRIPT_URL, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
                     body: JSON.stringify(logs[index])
                 })
-                .then(response => response.text())
+                .then(response => response.json()) // Google risponde con JSON
                 .then(data => {
                     console.log("Risposta server:", data);
                     index++;
@@ -325,7 +328,7 @@
                 })
                 .catch(err => {
                     document.body.removeChild(overlay);
-                    alert("Errore di connessione. I dati NON sono andati persi, riprova tra poco.");
+                    alert("Errore di connessione. Riprova.");
                     console.error("Errore fetch:", err);
                 });
             }
