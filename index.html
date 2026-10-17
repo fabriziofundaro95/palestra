@@ -22,7 +22,6 @@
     <div id="app" class="max-w-md mx-auto min-h-screen pb-24 relative"></div>
 
     <script>
-        // NUOVO URL AGGIORNATO
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmwsYApFyH9plxsaYswKgG_wYusNLbF0DKDp0iozBqMQXmGmPzurMe1AdwJed2jawM/exec";
         
         const database = {
@@ -81,6 +80,23 @@
         let activeExIdx = null;
         let activeSubIdx = null;
         let logs = JSON.parse(localStorage.getItem('warfit_logs')) || [];
+        
+        // NUOVO: Salvataggio locale dello storico
+        let storici = JSON.parse(localStorage.getItem('warfit_history')) || {};
+
+        // Funzione per scaricare lo storico in background
+        function fetchHistory() {
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        storici = data.data;
+                        localStorage.setItem('warfit_history', JSON.stringify(storici));
+                        if(currentView === 'exercise') render(); // Ricarica la vista se siamo in un esercizio
+                    }
+                })
+                .catch(err => console.log("Impossibile caricare storico in background", err));
+        }
 
         function render() {
             const app = document.getElementById('app');
@@ -109,7 +125,7 @@
                         <div class="flex-1 text-center py-2 bg-emerald-500 rounded-full text-white font-bold">Passati</div>
                     </div>
                     
-                    <div onclick="openWorkout('push')" class="card flex justify-between items-center mb-4">
+                    <div onclick="openWorkout('push')" class="card flex justify-between items-center mb-4 cursor-pointer">
                         <div>
                             <span class="badge-green mb-2 inline-block uppercase">Giorno 1</span>
                             <h3 class="text-lg font-extrabold text-gray-800">Full body focus Push</h3>
@@ -118,7 +134,7 @@
                         <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-chevron-right"></i></div>
                     </div>
                     
-                    <div onclick="openWorkout('pull')" class="card flex justify-between items-center mb-4">
+                    <div onclick="openWorkout('pull')" class="card flex justify-between items-center mb-4 cursor-pointer">
                         <div>
                             <span class="badge-green mb-2 inline-block uppercase">Giorno 2</span>
                             <h3 class="text-lg font-extrabold text-gray-800">Full body focus Pull</h3>
@@ -127,7 +143,7 @@
                         <div class="bg-emerald-500 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-md"><i class="fa-solid fa-chevron-right"></i></div>
                     </div>
                     
-                    <div onclick="openWorkout('legs')" class="card flex justify-between items-center mb-4">
+                    <div onclick="openWorkout('legs')" class="card flex justify-between items-center mb-4 cursor-pointer">
                         <div>
                             <span class="badge-green mb-2 inline-block uppercase">Giorno 3</span>
                             <h3 class="text-lg font-extrabold text-gray-800">Full body focus Gambe</h3>
@@ -144,7 +160,7 @@
                 wData.forEach((item, index) => {
                     if(item.tipo === 'singolo') {
                         html += `
-                        <div onclick="openExercise(${index}, null)" class="card">
+                        <div onclick="openExercise(${index}, null)" class="card cursor-pointer">
                             <h3 class="font-extrabold text-lg text-gray-800">${item.nome}</h3>
                             <p class="text-gray-500 text-sm mt-2 font-medium">
                                 <span class="font-bold text-gray-700">${item.serie}</span> Serie &middot; <span class="font-bold text-gray-700">${item.rep}</span> &middot; <i class="fa-regular fa-hourglass-half ml-1"></i> ${item.rec}
@@ -155,7 +171,7 @@
                             <h3 class="font-extrabold text-gray-800 text-lg mb-3 flex items-center"><i class="fa-solid fa-arrows-rotate mr-2 text-gray-500"></i> Superserie</h3>`;
                         item.esercizi.forEach((subItem, subIdx) => {
                             html += `
-                            <div onclick="openExercise(${index}, ${subIdx})" class="card border border-white">
+                            <div onclick="openExercise(${index}, ${subIdx})" class="card border border-white cursor-pointer">
                                 <h4 class="font-extrabold text-gray-800">${subItem.nome}</h4>
                                 <p class="text-gray-500 text-sm mt-2 font-medium">
                                     <span class="font-bold text-gray-700">${subItem.serie}</span> Serie &middot; <span class="font-bold text-gray-700">${subItem.rep}</span> &middot; <i class="fa-regular fa-hourglass-half ml-1"></i> ${subItem.rec}
@@ -182,6 +198,34 @@
                 let numSeries = ex.serie || 1;
                 let seriesHtml = '';
                 
+                // NUOVO: HTML per lo Storico
+                let historyHtml = '';
+                if(storici[ex.nome]) {
+                    let hData = storici[ex.nome];
+                    // Costruisce la lista delle serie precedenti
+                    let hSeries = hData.series.map(s => `
+                        <div class="flex justify-between items-center text-sm py-1.5 border-b border-indigo-100/50 last:border-0">
+                            <span class="font-bold text-indigo-900">Serie ${s.serie}</span>
+                            <span class="text-indigo-700 font-medium">${s.peso} <span class="text-xs text-indigo-400 mx-1">X</span> ${s.rep}</span>
+                        </div>
+                    `).join('');
+                    
+                    // Converte data per lettura migliore (es. da 2026-10-17 a 17/10/2026)
+                    let dParts = hData.date.split('-');
+                    let fDate = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : hData.date;
+                    
+                    historyHtml = `
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 mb-6 shadow-sm">
+                        <h3 class="text-sm font-extrabold text-indigo-800 mb-2 flex items-center">
+                            <i class="fa-solid fa-clock-rotate-left mr-2 opacity-70"></i> Ultima volta (${fDate})
+                        </h3>
+                        <div class="mt-3 bg-white/60 rounded-xl p-3">
+                            ${hSeries}
+                        </div>
+                    </div>
+                    `;
+                }
+
                 for(let i=1; i<=numSeries; i++) {
                     seriesHtml += `
                     <div class="input-row">
@@ -215,8 +259,10 @@
                         </div>
                     </div>
 
+                    ${historyHtml}
+
                     <div class="card p-5 mb-6 shadow-sm border border-gray-50">
-                        <h3 class="font-extrabold text-gray-800 text-lg mb-4">Serie</h3>
+                        <h3 class="font-extrabold text-gray-800 text-lg mb-4">Serie Oggi</h3>
                         ${seriesHtml}
                         
                         <div class="mt-6">
@@ -280,7 +326,6 @@
             
             if(savedAny) {
                 localStorage.setItem('warfit_logs', JSON.stringify(logs));
-                // Vibrate feedback if supported
                 if(navigator.vibrate) navigator.vibrate(50); 
                 navigate('workout');
             } else {
@@ -300,13 +345,12 @@
             overlay.innerHTML = '<div class="w-12 h-12 border-4 border-white border-t-emerald-500 rounded-full animate-spin mb-4"></div><p class="text-white font-bold text-lg">Sincronizzazione in corso...</p>';
             document.body.appendChild(overlay);
             
-            // INVIO A PACCO UNICO (BATCH REQUEST)
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8',
                 },
-                body: JSON.stringify(logs) // Invia l'intero array 'logs' in una volta sola
+                body: JSON.stringify(logs)
             })
             .then(response => response.json()) 
             .then(data => {
@@ -315,6 +359,7 @@
                     logs = [];
                     localStorage.setItem('warfit_logs', '[]');
                     alert("Salvataggio completato su Google Sheets!");
+                    fetchHistory(); // Aggiorna lo storico con i nuovi dati salvati
                     navigate('home');
                 } else {
                      alert("Errore restituito dal server: " + data.message);
@@ -327,7 +372,8 @@
             });
         }
 
-        // Init App
+        // Init App e carica lo storico in background
+        fetchHistory();
         render();
     </script>
 </body>
